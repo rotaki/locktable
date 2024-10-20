@@ -53,6 +53,16 @@ impl SimpleLockTable {
         }
     }
 
+    pub fn downgrade(&self, key: Vec<u8>) {
+        match self.hashmap.entry(key) {
+            dashmap::Entry::Occupied(entry) => {
+                let lock = entry.get();
+                lock.downgrade();
+            }
+            dashmap::Entry::Vacant(_) => panic!("Lock not found"),
+        }
+    }
+
     pub fn release_shared(&self, key: Vec<u8>) {
         match self.hashmap.entry(key) {
             dashmap::Entry::Occupied(entry) => {
