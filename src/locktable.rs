@@ -1,9 +1,25 @@
+use std::fmt::Display;
+
 use dashmap::DashMap;
 
 use crate::rwlatch::RwLatch;
 
 pub struct SimpleLockTable {
     hashmap: DashMap<Vec<u8>, RwLatch>,
+}
+
+impl Display for SimpleLockTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut keys = vec![];
+        for key in self.hashmap.iter() {
+            // Stringify the key
+            let key_str = String::from_utf8_lossy(&key.key());
+            keys.push(key_str.to_string());
+            let latch = key.value();
+            write!(f, "Key: {}, Latch: {}\n", key_str, latch)?;
+        }
+        Ok(())
+    }
 }
 
 impl SimpleLockTable {
@@ -306,5 +322,19 @@ mod tests {
         for handle in handles {
             handle.join().unwrap();
         }
+    }
+
+    #[test]
+    fn test_display() {
+        let lock_table = SimpleLockTable::new();
+        let key1 = b"key1".to_vec();
+        let key2 = b"key2".to_vec();
+
+        lock_table.try_shared(key1.clone());
+        lock_table.try_exclusive(key2.clone());
+        lock_table.try_shared(key1.clone());
+
+        let display = format!("{}", lock_table);
+        println!("{}", display);
     }
 }

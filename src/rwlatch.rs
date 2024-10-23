@@ -1,4 +1,7 @@
-use std::sync::atomic::{AtomicI16, Ordering};
+use std::{
+    fmt::Display,
+    sync::atomic::{AtomicI16, Ordering},
+};
 
 pub struct RwLatch {
     pub cnt: AtomicI16,
@@ -8,6 +11,19 @@ impl Default for RwLatch {
     fn default() -> Self {
         RwLatch {
             cnt: AtomicI16::new(0), // Up to 2^15 readers or 1 writer
+        }
+    }
+}
+
+impl Display for RwLatch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cnt = self.cnt.load(Ordering::Acquire);
+        if cnt == 0 {
+            write!(f, "Unlocked")
+        } else if cnt > 0 {
+            write!(f, "Shared({})", cnt)
+        } else {
+            write!(f, "Exclusive")
         }
     }
 }
