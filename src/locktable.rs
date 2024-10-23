@@ -87,6 +87,10 @@ impl SimpleLockTable {
             dashmap::Entry::Vacant(_) => panic!("Lock not found"),
         }
     }
+
+    pub fn check_all_released(&self) -> bool {
+        self.hashmap.is_empty()
+    }
 }
 
 #[cfg(test)]
